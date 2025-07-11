@@ -47,7 +47,7 @@ pub const DungeonGame = struct {
         }
     }
 
-    pub fn calculateMinimumHP(allocator: std.mem.Allocator, dungeon: [][]const i32) !i32 {
+    pub fn calculateMinimumHP(allocator: std.mem.Allocator, dungeon: [][]i32) !i32 {
         const rows = dungeon.len;
         if (rows == 0) return 1;
         const cols = dungeon[0].len;
@@ -83,14 +83,13 @@ pub fn main() !void {
     defer _ = gpa.deinit();
     const allocator = gpa.allocator();
 
-    const raw_dungeon = [_][]const i32{
+    const raw_dungeon = [_][]i32{
         &[_]i32{ -2, -3, 3 },
         &[_]i32{ -5, -10, 1 },
         &[_]i32{ 10, 30, -5 },
     };
 
-    const dungeon: [][]const i32 = raw_dungeon[0..];
-    const min_hp = try DungeonGame.calculateMinimumHP(allocator, dungeon);
+    const min_hp = try DungeonGame.calculateMinimumHP(allocator, raw_dungeon);
 
     const stdout = std.io.getStdOut().writer();
     try stdout.print("Minimum HP required: {d}\n", .{min_hp});
