@@ -2,15 +2,15 @@ const std = @import("std");
 
 pub fn calculateMinimumHP(dungeon: [][]const i32) !i32 {
     const m = dungeon.len;
-    if (m == 0) return 0;
+    if (m == 0) return 1;
     const n = dungeon[0].len;
-    if (n == 0) return 0;
+    if (n == 0) return 1;
 
     var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
     defer arena.deinit();
     const allocator = arena.allocator();
 
-    var dp = try allocator.alloc([*]i32, m);
+    var dp = try allocator.alloc([]i32, m);
     for (0..m) |i| {
         dp[i] = try allocator.alloc(i32, n);
     }
@@ -39,20 +39,32 @@ pub fn calculateMinimumHP(dungeon: [][]const i32) !i32 {
 }
 
 test "Exemplo 1 do LeetCode" {
-    const dungeon_data = [_][]const i32{
-        &.{ -2, -3, 3 },
-        &.{ -5, -10, 1 },
-        &.{ 10, 30, -5 },
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    defer arena.deinit();
+    const allocator = arena.allocator();
+
+    const dungeon_data = [_][3]i32{
+        .{ -2, -3, 3 },
+        .{ -5, -10, 1 },
+        .{ 10, 30, -5 },
     };
-    const min_hp = try calculateMinimumHP(dungeon_data);
+    var dungeon_slices = try allocator.alloc([]const i32, 3);
+    dungeon_slices[0] = dungeon_data[0][0..];
+    dungeon_slices[1] = dungeon_data[1][0..];
+    dungeon_slices[2] = dungeon_data[2][0..];
+
+    const min_hp = try calculateMinimumHP(dungeon_slices);
     try std.testing.expectEqual(min_hp, 7);
 }
 
 test "Masmorra simples" {
-    const dungeon_data = [_][]const i32{
-        &.{100},
+    const dungeon_data = [_][1]i32{
+        .{100},
     };
-    const min_hp = try calculateMinimumHP(dungeon_data);
+    var dungeon_slices: [1][]const i32 = .{
+        dungeon_data[0][0..],
+    };
+    const min_hp = try calculateMinimumHP(dungeon_slices[0..]);
     try std.testing.expectEqual(min_hp, 1);
 }
 
@@ -60,7 +72,10 @@ test "Masmorra com um único valor negativo" {
     const dungeon_data = [_][]const i32{
         &.{-10},
     };
-    const min_hp = try calculateMinimumHP(dungeon_data);
+    var dungeon_slices: [1][]const i32 = .{
+        dungeon_data[0][0..],
+    };
+    const min_hp = try calculateMinimumHP(dungeon_slices[0..]);
     try std.testing.expectEqual(min_hp, 11);
 }
 
@@ -68,16 +83,26 @@ test "Masmorra com zero" {
     const dungeon_data = [_][]const i32{
         &.{0},
     };
-    const min_hp = try calculateMinimumHP(dungeon_data);
+    var dungeon_slices: [1][]const i32 = .{
+        dungeon_data[0][0..],
+    };
+    const min_hp = try calculateMinimumHP(dungeon_slices[0..]);
     try std.testing.expectEqual(min_hp, 1);
 }
 
 test "Masmorra 2x2" {
+    var arena = std.heap.ArenaAllocator.init(std.heap.page_allocator);
+    const allocator = arena.allocator();
+    defer arena.deinit();
     const dungeon_data = [_][]const i32{
         &.{ -1, -2 },
         &.{ -3, -4 },
     };
-    const min_hp = try calculateMinimumHP(dungeon_data);
+    var dungeon_slices = try allocator.alloc([]const i32, 2);
+    dungeon_slices[0] = dungeon_data[0][0..];
+    dungeon_slices[1] = dungeon_data[1][0..];
+
+    const min_hp = try calculateMinimumHP(dungeon_slices[0..]);
     try std.testing.expectEqual(min_hp, 8);
 }
 
@@ -88,7 +113,10 @@ test "Masmorra grande com muitos valores positivos" {
         &.{ 1, 1, 1, 1 },
         &.{ 1, 1, 1, 1 },
     };
-    const min_hp = try calculateMinimumHP(dungeon_data);
+    var dungeon_slices: [1][]const i32 = .{
+        dungeon_data[0][0..],
+    };
+    const min_hp = try calculateMinimumHP(dungeon_slices[0..]);
     try std.testing.expectEqual(min_hp, 1);
 }
 
@@ -98,6 +126,9 @@ test "Masmorra com caminho desafiador" {
         &.{ 0, -2, 0 },
         &.{ -3, -3, -3 },
     };
-    const min_hp = try calculateMinimumHP(dungeon_data);
+    var dungeon_slices: [1][]const i32 = .{
+        dungeon_data[0][0..],
+    };
+    const min_hp = try calculateMinimumHP(dungeon_slices[0..]);
     try std.testing.expectEqual(min_hp, 3);
 }
